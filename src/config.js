@@ -1,45 +1,151 @@
 // -----------------------------------------------------------------------------
-// Integration configuration.
+// Integration configuration: defaults (they mirror the `default` values of the
+// manifest `config_schema`, see test/manifest.test.js) and normalization, so
+// the rest of the code never deals with strings, blanks or `undefined`.
 //
-// The configuration is filled in by the user in Gladys, from the `config_schema`
-// declared in `gladys-assistant-integration.json`. The SDK fetches it for you
-// (`gladys.getConfig()`) and notifies you of every change through
-// `gladys.onConfigUpdated()`.
-//
-// This module only provides defaults and normalizes the received object, so the
-// rest of the code never has to deal with `undefined`.
+// One Incus (or LXD) server: the address of its HTTPS API, the trust token
+// of `incus config trust add` (used once, then the client certificate is
+// trusted), a display name, the interval of the reads and the language of
+// the texts sent by the container.
 // -----------------------------------------------------------------------------
 
-// Defaults: they MUST stay consistent with the `default` values declared in the
-// `config_schema` of the manifest.
+import { createHash } from 'node:crypto';
+
+export const LANGUAGES = ['en', 'fr', 'de', 'es'];
+
+// The port of `core.https_address` in the Incus documentation.
+export const DEFAULT_PORT = 8443;
+
+// Refresh intervals offered in the configuration, in seconds.
+export const POLL_INTERVALS = ['15', '30', '60', '120', '300'];
+
 export const DEFAULT_CONFIG = {
-  latitude: 48.8566, // Paris
-  longitude: 2.3522,
-  unit: 'celsius', // 'celsius' | 'fahrenheit'
-  // Seconds between two reads of the polled sensors. Gladys polls at most once
-  // a minute: slower intervals are applied by skipping polls (see
-  // createPoller in src/devices/index.js).
-  poll_frequency: 300,
-  // Reserved key (NOT in config_schema): because the manifest declares both
-  // 'local' and 'cloud' in its `transports` field, Gladys shows a standard
-  // "Prefer the local connection" toggle and sends the user's choice here.
-  // Read-only for the integration; defaults to true.
-  GLADYS_PREFER_LOCAL: true,
+  api_url: '',
+  trust_token: '',
+  host_name: '',
+  poll_interval: '30',
+  language: 'fr',
 };
 
+export const DEFAULT_HOST_NAME = 'Incus';
+export const MAX_NAME_LENGTH = 40;
+
 /**
- * Merge the user config with the defaults.
- * @param {Record<string, unknown>} raw config returned by the SDK
+ * Parse the API address typed by the user: a bare host or IP (`192.0.2.10`,
+ * HTTPS and port 8443 added), `host:port`, or a full `https://` URL (a
+ * reverse proxy, a path kept). Plain HTTP and credentials are refused: the
+ * API only speaks TLS, and an address must never carry a secret.
+ * @param {unknown} raw
+ * @returns {string|null} `https://host[:port][/path]`, null when unusable
+ */
+export function parseApiUrl(raw) {
+  if (typeof raw !== 'string') {
+    return null;
+  }
+  const text = raw.trim();
+  if (!text) {
+    return null;
+  }
+  const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(text);
+  let url;
+  try {
+    url = new URL(hasScheme ? text : `https://${text}`);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== 'https:' || !url.hostname) {
+    return null;
+  }
+  if (url.username || url.password || url.search || url.hash) {
+    return null;
+  }
+  // `0.0.0.0` / `[::]` is where the server listens, not where Gladys reaches it.
+  if (url.hostname === '0.0.0.0' || url.hostname === '[::]') {
+    return null;
+  }
+  if (!url.port && (!hasScheme || url.pathname === '/')) {
+    url.port = String(DEFAULT_PORT);
+  }
+  return `${url.origin}${url.pathname.replace(/\/+$/, '')}`;
+}
+
+/** Host part shown to the user (no scheme). */
+export const hostOf = (url) => url.replace(/^https:\/\//, '');
+
+/**
+ * Decode a trust token of `incus config trust add` (base64 of a JSON object).
+ * @returns {{ token: string, fingerprint: string, addresses: string[], id: string }|null}
+ *   `id` a hash of the token, to remember it was used without keeping it
+ */
+export function parseTrustToken(raw) {
+  if (typeof raw !== 'string') {
+    return null;
+  }
+  const token = raw.replace(/\s+/g, '');
+  if (!token) {
+    return null;
+  }
+  let data;
+  try {
+    data = JSON.parse(Buffer.from(token, 'base64').toString('utf8'));
+  } catch {
+    return null;
+  }
+  if (
+    !data ||
+    typeof data.client_name !== 'string' ||
+    typeof data.secret !== 'string' ||
+    !data.secret
+  ) {
+    return null;
+  }
+  const fingerprint =
+    typeof data.fingerprint === 'string' && /^[0-9a-f]{64}$/i.test(data.fingerprint)
+      ? data.fingerprint.toLowerCase()
+      : null;
+  return {
+    token,
+    fingerprint,
+    addresses: Array.isArray(data.addresses)
+      ? data.addresses.filter((entry) => typeof entry === 'string')
+      : [],
+    id: createHash('sha256').update(token).digest('hex').slice(0, 16),
+  };
+}
+
+/**
+ * @param {Record<string, unknown>} raw the configuration returned by the SDK
  */
 export function normalizeConfig(raw = {}) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  const text = (key) => (typeof source[key] === 'string' ? source[key].trim() : '');
+  const pick = (key, list) => {
+    const value = source[key] === undefined || source[key] === null ? '' : String(source[key]);
+    return list.includes(value) ? value : DEFAULT_CONFIG[key];
+  };
+
+  const problems = [];
+  const typedToken = text('trust_token');
+  const token = parseTrustToken(typedToken);
+  if (typedToken && !token) {
+    problems.push('invalidToken');
+  }
+  const typedUrl = text('api_url');
+  let url = parseApiUrl(typedUrl);
+  if (typedUrl && !url) {
+    problems.push('invalidUrl');
+  }
+  // No address typed: the first one the token lists.
+  if (!typedUrl && token?.addresses.length) {
+    url = parseApiUrl(token.addresses[0]);
+  }
+
   return {
-    ...DEFAULT_CONFIG,
-    ...raw,
-    // Force the types: config may arrive as strings from a form.
-    latitude: Number(raw.latitude ?? DEFAULT_CONFIG.latitude),
-    longitude: Number(raw.longitude ?? DEFAULT_CONFIG.longitude),
-    poll_frequency: Number(raw.poll_frequency ?? DEFAULT_CONFIG.poll_frequency),
-    // The preference is a boolean; anything but an explicit false means true.
-    GLADYS_PREFER_LOCAL: raw.GLADYS_PREFER_LOCAL !== false,
+    url,
+    token,
+    name: text('host_name').slice(0, MAX_NAME_LENGTH) || DEFAULT_HOST_NAME,
+    problems,
+    pollIntervalMs: Number(pick('poll_interval', POLL_INTERVALS)) * 1000,
+    language: LANGUAGES.includes(source.language) ? source.language : DEFAULT_CONFIG.language,
   };
 }

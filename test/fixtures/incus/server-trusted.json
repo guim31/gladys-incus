@@ -1,0 +1,91 @@
+{
+  "type": "sync",
+  "status": "Success",
+  "status_code": 200,
+  "operation": "",
+  "error_code": 0,
+  "error": "",
+  "metadata": {
+    "api_extensions": [
+      "storage_zfs_remove_snapshots",
+      "container_host_shutdown_timeout",
+      "container_full",
+      "instances",
+      "instance_all_projects",
+      "explicit_trust_token",
+      "projects",
+      "resources",
+      "certificate_project"
+    ],
+    "api_status": "stable",
+    "api_version": "1.0",
+    "auth": "trusted",
+    "public": false,
+    "auth_methods": ["tls"],
+    "auth_user_name": "5d1c0e8b7a6f",
+    "auth_user_method": "tls",
+    "environment": {
+      "addresses": ["192.0.2.30:8443"],
+      "architectures": ["x86_64", "i686"],
+      "certificate": "-----BEGIN CERTIFICATE-----\n(server certificate, left out)\n-----END CERTIFICATE-----\n",
+      "certificate_fingerprint": "5b2c1a9f0e6d4c3b8a7f6e5d4c3b2a1908f7e6d5c4b3a29180f7e6d5c4b3a291",
+      "driver": "lxc | qemu",
+      "driver_version": "6.0.5 | 9.2.4",
+      "firewall": "nftables",
+      "kernel": "Linux",
+      "kernel_architecture": "x86_64",
+      "kernel_features": {
+        "idmapped_mounts": "true",
+        "netnsid_getifaddrs": "true",
+        "seccomp_listener": "true",
+        "seccomp_listener_continue": "true",
+        "uevent_injection": "true",
+        "unpriv_binfmt": "true",
+        "unpriv_fscaps": "true"
+      },
+      "kernel_version": "6.12.48+deb13-amd64",
+      "lxc_features": {
+        "cgroup2": "true",
+        "core_scheduling": "true",
+        "devpts_fd": "true",
+        "idmapped_mounts_v2": "true",
+        "mount_injection_file": "true",
+        "network_gateway_device_route": "true",
+        "network_ipvlan": "true",
+        "network_l2proxy": "true",
+        "network_phys_macvlan_mtu": "true",
+        "network_veth_router": "true",
+        "pidfd": "true",
+        "seccomp_allow_deny_syntax": "true",
+        "seccomp_notify": "true",
+        "seccomp_proxy_send_notify_fd": "true"
+      },
+      "os_name": "Debian GNU/Linux",
+      "os_version": "13",
+      "project": "default",
+      "server": "incus",
+      "server_clustered": false,
+      "server_event_mode": "full-mesh",
+      "server_name": "homelab",
+      "server_pid": 1234,
+      "server_version": "6.18",
+      "storage": "zfs",
+      "storage_version": "2.3.2",
+      "storage_supported_drivers": [
+        {
+          "Name": "dir",
+          "Version": "1",
+          "Remote": false
+        },
+        {
+          "Name": "zfs",
+          "Version": "2.3.2",
+          "Remote": false
+        }
+      ]
+    },
+    "config": {
+      "core.https_address": ":8443"
+    }
+  }
+}

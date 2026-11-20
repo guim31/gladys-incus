@@ -1,0 +1,19 @@
+{
+  "type": "sync",
+  "status": "Success",
+  "status_code": 200,
+  "operation": "",
+  "error_code": 0,
+  "error": "",
+  "metadata": {
+    "cpu": {
+      "architecture": "x86_64",
+      "sockets": [],
+      "total": 8
+    },
+    "memory": {
+      "used": 4294967296,
+      "total": 17179869184
+    }
+  }
+}
