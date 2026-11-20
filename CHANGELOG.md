@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-20
+
 ### Added
 
 - The containers and virtual machines of an Incus server (or LXD) in Gladys,
@@ -27,3 +29,6 @@ the notes of the version's GitHub Release.
 - Dashboard widget: instances running and in error, the list of the instances
   with the problems first, Start or Stop and Restart buttons for a chosen
   instance.
+
+[Unreleased]: https://github.com/guim31/gladys-incus/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-incus/releases/tag/v1.0.0
