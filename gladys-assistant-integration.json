@@ -1,177 +1,737 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Incus",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Your Incus and LXD containers and VMs in Gladys: state, CPU, memory, start, stop, restart.",
+    "fr": "Vos conteneurs et VM Incus et LXD dans Gladys : état, CPU, mémoire, démarrage, arrêt.",
+    "de": "Deine Incus- und LXD-Container und VMs in Gladys: Zustand, CPU, Speicher, Start, Stopp.",
+    "es": "Sus contenedores y VM de Incus y LXD en Gladys: estado, CPU, memoria, inicio, parada."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-incus:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-incus/main/cover.png",
+  "categories": ["servers"],
+  "transports": ["local"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your Incus server",
+        "fr": "Votre serveur Incus",
+        "de": "Dein Incus-Server",
+        "es": "Su servidor Incus"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Make Incus listen on the network (incus config set core.https_address :8443), create a token with incus config trust add gladys, then fill in the fields below. LXD works the same way (lxc).",
+        "fr": "Faites écouter Incus sur le réseau (incus config set core.https_address :8443), créez un jeton avec incus config trust add gladys, puis remplissez les champs ci-dessous. LXD fonctionne de même (lxc).",
+        "de": "Lass Incus im Netzwerk lauschen (incus config set core.https_address :8443), erstelle ein Token mit incus config trust add gladys und fülle dann die Felder unten aus. LXD funktioniert genauso (lxc).",
+        "es": "Haga que Incus escuche en la red (incus config set core.https_address :8443), cree un token con incus config trust add gladys y rellene los campos de abajo. LXD funciona igual (lxc)."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/guim31/gladys-incus/blob/main/docs/en.md",
+          "label": {
+            "en": "Setup guide",
+            "fr": "Guide d'installation",
+            "de": "Installationsanleitung",
+            "es": "Guía de instalación"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
-    },
-    {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "key": "api_url",
+      "type": "string",
       "required": false,
-      "default": "celsius",
+      "label": {
+        "en": "Incus server address",
+        "fr": "Adresse du serveur Incus",
+        "de": "Adresse des Incus-Servers",
+        "es": "Dirección del servidor Incus"
+      },
+      "placeholder": {
+        "en": "192.168.1.30:8443",
+        "fr": "192.168.1.30:8443",
+        "de": "192.168.1.30:8443",
+        "es": "192.168.1.30:8443"
+      },
+      "description": {
+        "en": "The IP or name of the server, and the port of its API (8443 by default). Empty: the first address of the token.",
+        "fr": "L'IP ou le nom du serveur, et le port de son API (8443 par défaut). Vide : la première adresse du jeton.",
+        "de": "Die IP oder der Name des Servers und der Port seiner API (standardmäßig 8443). Leer: die erste Adresse des Tokens.",
+        "es": "La IP o el nombre del servidor y el puerto de su API (8443 por defecto). Vacío: la primera dirección del token."
+      }
+    },
+    {
+      "key": "trust_token",
+      "type": "secret",
+      "required": false,
+      "label": {
+        "en": "Trust token",
+        "fr": "Jeton de confiance",
+        "de": "Vertrauens-Token",
+        "es": "Token de confianza"
+      },
+      "description": {
+        "en": "The line printed by incus config trust add gladys (or lxc config trust add). Used once: Incus then trusts the certificate of Gladys.",
+        "fr": "La ligne affichée par incus config trust add gladys (ou lxc config trust add). Utilisé une fois : Incus fait ensuite confiance au certificat de Gladys.",
+        "de": "Die Zeile, die incus config trust add gladys (oder lxc config trust add) ausgibt. Wird einmal benutzt: Danach vertraut Incus dem Zertifikat von Gladys.",
+        "es": "La línea que muestra incus config trust add gladys (o lxc config trust add). Se usa una vez: después Incus confía en el certificado de Gladys."
+      }
+    },
+    {
+      "key": "options",
+      "type": "section",
+      "label": {
+        "en": "Options",
+        "fr": "Options",
+        "de": "Optionen",
+        "es": "Opciones"
+      },
+      "description": {
+        "en": "Only the devices added to Gladys receive values; the scene trigger works for every instance.",
+        "fr": "Seuls les appareils ajoutés à Gladys reçoivent des valeurs ; le déclencheur de scène fonctionne pour toutes les instances.",
+        "de": "Nur die zu Gladys hinzugefügten Geräte erhalten Werte; der Szenen-Auslöser funktioniert für alle Instanzen.",
+        "es": "Solo los dispositivos añadidos a Gladys reciben valores; el disparador de escena funciona para todas las instancias."
+      }
+    },
+    {
+      "key": "host_name",
+      "type": "string",
+      "required": false,
+      "label": {
+        "en": "Server name (optional)",
+        "fr": "Nom du serveur (facultatif)",
+        "de": "Name des Servers (optional)",
+        "es": "Nombre del servidor (opcional)"
+      },
+      "placeholder": {
+        "en": "Incus",
+        "fr": "Incus",
+        "de": "Incus",
+        "es": "Incus"
+      },
+      "description": {
+        "en": "Shown in the device name, the widget and the messages.",
+        "fr": "Affiché dans le nom de l'appareil, le widget et les messages.",
+        "de": "Wird im Gerätenamen, im Widget und in den Nachrichten angezeigt.",
+        "es": "Se muestra en el nombre del dispositivo, el widget y los mensajes."
+      }
+    },
+    {
+      "key": "poll_interval",
+      "type": "select",
+      "required": false,
+      "default": "30",
+      "label": {
+        "en": "Refresh interval",
+        "fr": "Intervalle de rafraîchissement",
+        "de": "Aktualisierungsintervall",
+        "es": "Intervalo de actualización"
+      },
+      "description": {
+        "en": "How often Incus is read (the CPU use is measured between two reads).",
+        "fr": "Fréquence de lecture d'Incus (l'usage du processeur se mesure entre deux lectures).",
+        "de": "Wie oft Incus gelesen wird (die CPU-Last wird zwischen zwei Lesevorgängen gemessen).",
+        "es": "Frecuencia de lectura de Incus (el uso del procesador se mide entre dos lecturas)."
+      },
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "15",
+          "label": {
+            "en": "15 seconds",
+            "fr": "15 secondes",
+            "de": "15 Sekunden",
+            "es": "15 segundos"
+          }
+        },
+        {
+          "value": "30",
+          "label": {
+            "en": "30 seconds",
+            "fr": "30 secondes",
+            "de": "30 Sekunden",
+            "es": "30 segundos"
+          }
+        },
+        {
+          "value": "60",
+          "label": {
+            "en": "1 minute",
+            "fr": "1 minute",
+            "de": "1 Minute",
+            "es": "1 minuto"
+          }
+        },
+        {
+          "value": "120",
+          "label": {
+            "en": "2 minutes",
+            "fr": "2 minutes",
+            "de": "2 Minuten",
+            "es": "2 minutos"
+          }
+        },
+        {
+          "value": "300",
+          "label": {
+            "en": "5 minutes",
+            "fr": "5 minutes",
+            "de": "5 Minuten",
+            "es": "5 minutos"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
-      "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
-      },
+      "key": "language",
+      "type": "select",
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "fr",
+      "label": {
+        "en": "Language of the names",
+        "fr": "Langue des noms",
+        "de": "Sprache der Namen",
+        "es": "Idioma de los nombres"
+      },
+      "description": {
+        "en": "Language of the feature names (set when a device is added) and of the action messages.",
+        "fr": "Langue des noms des fonctionnalités (fixés à l'ajout d'un appareil) et des messages des actions.",
+        "de": "Sprache der Funktionsnamen (beim Hinzufügen eines Geräts festgelegt) und der Aktionsmeldungen.",
+        "es": "Idioma de los nombres de las funciones (fijados al añadir un dispositivo) y de los mensajes de las acciones."
+      },
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "English",
+            "de": "English",
+            "es": "English"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "Français",
+            "fr": "Français",
+            "de": "Français",
+            "es": "Français"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "Deutsch",
+            "fr": "Deutsch",
+            "de": "Deutsch",
+            "es": "Deutsch"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Español",
+            "fr": "Español",
+            "de": "Español",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "description": {
+        "en": "Reads Incus now and says what it found.",
+        "fr": "Lit Incus maintenant et dit ce qu'il a trouvé.",
+        "de": "Liest Incus jetzt und sagt, was gefunden wurde.",
+        "es": "Lee Incus ahora y dice lo que ha encontrado."
+      },
       "timeout_seconds": 30
     },
     {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
+      "key": "trust_server_again",
+      "label": {
+        "en": "Trust the server certificate again",
+        "fr": "Faire de nouveau confiance au certificat",
+        "de": "Dem Server-Zertifikat erneut vertrauen",
+        "es": "Volver a confiar en el certificado"
+      },
+      "description": {
+        "en": "After a reinstallation of Incus or a new certificate: the next certificate presented by the server is accepted.",
+        "fr": "Après une réinstallation d'Incus ou un nouveau certificat : le prochain certificat présenté par le serveur est accepté.",
+        "de": "Nach einer Neuinstallation von Incus oder einem neuen Zertifikat: Das nächste Zertifikat des Servers wird akzeptiert.",
+        "es": "Tras reinstalar Incus o un nuevo certificado: se acepta el próximo certificado que presente el servidor."
+      },
+      "timeout_seconds": 30
+    },
+    {
+      "key": "start_instance",
+      "label": {
+        "en": "Start an instance",
+        "fr": "Démarrer une instance",
+        "de": "Instanz starten",
+        "es": "Iniciar una instancia"
+      },
+      "description": {
+        "en": "Starts the chosen container or VM (resumes it when paused).",
+        "fr": "Démarre le conteneur ou la VM choisi (le reprend s'il est en pause).",
+        "de": "Startet den gewählten Container oder die VM (setzt sie fort, wenn pausiert).",
+        "es": "Inicia el contenedor o la VM elegida (la reanuda si está en pausa)."
+      },
+      "timeout_seconds": 90,
       "fields": [
         {
-          "key": "device",
+          "key": "instance",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "label": {
+            "en": "Instance",
+            "fr": "Instance",
+            "de": "Instanz",
+            "es": "Instancia"
+          },
+          "description": {
+            "en": "An instance device of this integration.",
+            "fr": "Un appareil instance de cette intégration.",
+            "de": "Ein Instanz-Gerät dieser Integration.",
+            "es": "Un dispositivo instancia de esta integración."
+          }
         }
       ]
-    }
-  ],
-  "scene_triggers": [
+    },
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
-      "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+      "key": "stop_instance",
+      "label": {
+        "en": "Stop an instance",
+        "fr": "Arrêter une instance",
+        "de": "Instanz stoppen",
+        "es": "Detener una instancia"
       },
+      "description": {
+        "en": "Asks the chosen instance to shut down cleanly (30 seconds at most).",
+        "fr": "Demande à l'instance choisie de s'éteindre proprement (30 secondes au plus).",
+        "de": "Bittet die gewählte Instanz, sauber herunterzufahren (höchstens 30 Sekunden).",
+        "es": "Pide a la instancia elegida que se apague correctamente (30 segundos como máximo)."
+      },
+      "timeout_seconds": 90,
       "fields": [
         {
-          "key": "device",
+          "key": "instance",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
-        },
-        {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
-        }
-      ],
-      "variables": [
-        {
-          "key": "target",
-          "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Instance",
+            "fr": "Instance",
+            "de": "Instanz",
+            "es": "Instancia"
+          },
+          "description": {
+            "en": "An instance device of this integration.",
+            "fr": "Un appareil instance de cette intégration.",
+            "de": "Ein Instanz-Gerät dieser Integration.",
+            "es": "Un dispositivo instancia de esta integración."
+          }
         }
       ]
-    }
-  ],
-  "scene_actions": [
+    },
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "restart_instance",
+      "label": {
+        "en": "Restart an instance",
+        "fr": "Redémarrer une instance",
+        "de": "Instanz neu starten",
+        "es": "Reiniciar una instancia"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Restarts the chosen instance (starts it when stopped).",
+        "fr": "Redémarre l'instance choisie (la démarre si elle est arrêtée).",
+        "de": "Startet die gewählte Instanz neu (startet sie, wenn gestoppt).",
+        "es": "Reinicia la instancia elegida (la inicia si está detenida)."
+      },
+      "timeout_seconds": 90,
       "fields": [
         {
-          "key": "device",
+          "key": "instance",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ],
-      "outputs": [
-        {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "label": {
+            "en": "Instance",
+            "fr": "Instance",
+            "de": "Instanz",
+            "es": "Instancia"
+          },
+          "description": {
+            "en": "An instance device of this integration.",
+            "fr": "Un appareil instance de cette intégration.",
+            "de": "Ein Instanz-Gerät dieser Integration.",
+            "es": "Un dispositivo instancia de esta integración."
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "instances",
+      "label": {
+        "en": "Incus instances",
+        "fr": "Instances Incus",
+        "de": "Incus-Instanzen",
+        "es": "Instancias de Incus"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "icon": "server",
+      "description": {
+        "en": "Instances running and in error, their list, and buttons for one instance.",
+        "fr": "Instances en marche et en erreur, leur liste, et des boutons pour une instance.",
+        "de": "Laufende und fehlerhafte Instanzen, ihre Liste und Schaltflächen für eine Instanz.",
+        "es": "Instancias en marcha y con error, su lista y botones para una instancia."
+      },
+      "settings": [
+        {
+          "key": "instance",
+          "type": "select",
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Instance with buttons",
+            "fr": "Instance avec boutons",
+            "de": "Instanz mit Schaltflächen",
+            "es": "Instancia con botones"
+          },
+          "description": {
+            "en": "Shows Start or Stop and Restart for this instance. Empty: no button.",
+            "fr": "Affiche Démarrer ou Arrêter et Redémarrer pour cette instance. Vide : aucun bouton.",
+            "de": "Zeigt Starten oder Stoppen und Neu starten für diese Instanz. Leer: keine Schaltfläche.",
+            "es": "Muestra Iniciar o Detener y Reiniciar para esta instancia. Vacío: ningún botón."
+          }
+        },
+        {
+          "key": "show_list",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "label": {
+            "en": "Show the list of instances",
+            "fr": "Afficher la liste des instances",
+            "de": "Liste der Instanzen anzeigen",
+            "es": "Mostrar la lista de instancias"
+          },
+          "description": {
+            "en": "The added instances (all of them if none was added), the problems first.",
+            "fr": "Les instances ajoutées (toutes si aucune ne l'est), les problèmes d'abord.",
+            "de": "Die hinzugefügten Instanzen (alle, wenn keine hinzugefügt ist), Probleme zuerst.",
+            "es": "Las instancias añadidas (todas si no hay ninguna), los problemas primero."
+          }
+        },
+        {
+          "key": "show_buttons",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "label": {
+            "en": "Show the instance buttons",
+            "fr": "Afficher les boutons de l'instance",
+            "de": "Instanz-Schaltflächen anzeigen",
+            "es": "Mostrar los botones de la instancia"
+          }
+        },
+        {
+          "key": "show_refresh",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "label": {
+            "en": "Show the Refresh button",
+            "fr": "Afficher le bouton Actualiser",
+            "de": "Schaltfläche Aktualisieren anzeigen",
+            "es": "Mostrar el botón Actualizar"
+          }
+        }
+      ],
+      "action_timeout_seconds": 90
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "instance_stopped",
+      "label": {
+        "en": "Instance stopped unexpectedly",
+        "fr": "Instance arrêtée de façon inattendue",
+        "de": "Instanz unerwartet gestoppt",
+        "es": "Instancia detenida inesperadamente"
+      },
+      "description": {
+        "en": "A running container or VM stopped or went into error without Gladys asking (crash, shutdown inside, memory…).",
+        "fr": "Un conteneur ou une VM en marche s'est arrêté ou est en erreur sans que Gladys le demande (plantage, arrêt interne, mémoire…).",
+        "de": "Ein laufender Container oder eine VM wurde gestoppt oder ist fehlerhaft, ohne dass Gladys es verlangt hat (Absturz, internes Herunterfahren, Speicher …).",
+        "es": "Un contenedor o una VM en marcha se ha detenido o tiene un error sin que Gladys lo pida (fallo, apagado interno, memoria…)."
+      },
+      "fields": [
+        {
+          "key": "instance",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Instance",
+            "fr": "Instance",
+            "de": "Instanz",
+            "es": "Instancia"
+          },
+          "description": {
+            "en": "An instance device. Empty: every instance.",
+            "fr": "Un appareil instance. Vide : toutes les instances.",
+            "de": "Ein Instanz-Gerät. Leer: alle Instanzen.",
+            "es": "Un dispositivo instancia. Vacío: todas las instancias."
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "instance_name",
+          "type": "string",
+          "label": {
+            "en": "Instance",
+            "fr": "Instance",
+            "de": "Instanz",
+            "es": "Instancia"
+          }
+        },
+        {
+          "key": "project",
+          "type": "string",
+          "label": {
+            "en": "Project",
+            "fr": "Projet",
+            "de": "Projekt",
+            "es": "Proyecto"
+          }
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "label": {
+            "en": "State",
+            "fr": "État",
+            "de": "Zustand",
+            "es": "Estado"
+          }
+        }
+      ]
+    },
+    {
+      "key": "incus_unreachable",
+      "label": {
+        "en": "Incus unreachable",
+        "fr": "Incus injoignable",
+        "de": "Incus nicht erreichbar",
+        "es": "Incus inaccesible"
+      },
+      "description": {
+        "en": "The Incus server no longer answers (two reads in a row, 15 seconds apart).",
+        "fr": "Le serveur Incus ne répond plus (deux lectures de suite, à 15 secondes d'intervalle).",
+        "de": "Der Incus-Server antwortet nicht mehr (zwei Lesevorgänge in Folge, im Abstand von 15 Sekunden).",
+        "es": "El servidor Incus ya no responde (dos lecturas seguidas, con 15 segundos de intervalo)."
+      },
+      "variables": [
+        {
+          "key": "host_name",
+          "type": "string",
+          "label": {
+            "en": "Server",
+            "fr": "Serveur",
+            "de": "Server",
+            "es": "Servidor"
+          }
+        }
+      ]
+    }
+  ],
+  "scene_actions": [
+    {
+      "key": "start_instance",
+      "label": {
+        "en": "Start an instance",
+        "fr": "Démarrer une instance",
+        "de": "Instanz starten",
+        "es": "Iniciar una instancia"
+      },
+      "description": {
+        "en": "Starts the chosen container or VM (resumes it when paused).",
+        "fr": "Démarre le conteneur ou la VM choisi (le reprend s'il est en pause).",
+        "de": "Startet den gewählten Container oder die VM (setzt sie fort, wenn pausiert).",
+        "es": "Inicia el contenedor o la VM elegida (la reanuda si está en pausa)."
+      },
+      "timeout_seconds": 90,
+      "fields": [
+        {
+          "key": "instance",
+          "type": "select",
+          "source": "devices",
+          "required": true,
+          "label": {
+            "en": "Instance",
+            "fr": "Instance",
+            "de": "Instanz",
+            "es": "Instancia"
+          },
+          "description": {
+            "en": "An instance device of this integration.",
+            "fr": "Un appareil instance de cette intégration.",
+            "de": "Ein Instanz-Gerät dieser Integration.",
+            "es": "Un dispositivo instancia de esta integración."
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "key": "instance_name",
+          "type": "string",
+          "label": {
+            "en": "Instance",
+            "fr": "Instance",
+            "de": "Instanz",
+            "es": "Instancia"
+          }
+        },
+        {
+          "key": "running",
+          "type": "boolean",
+          "label": {
+            "en": "Running",
+            "fr": "En marche",
+            "de": "Läuft",
+            "es": "En marcha"
+          }
+        }
+      ]
+    },
+    {
+      "key": "stop_instance",
+      "label": {
+        "en": "Stop an instance",
+        "fr": "Arrêter une instance",
+        "de": "Instanz stoppen",
+        "es": "Detener una instancia"
+      },
+      "description": {
+        "en": "Asks the chosen instance to shut down cleanly (30 seconds at most).",
+        "fr": "Demande à l'instance choisie de s'éteindre proprement (30 secondes au plus).",
+        "de": "Bittet die gewählte Instanz, sauber herunterzufahren (höchstens 30 Sekunden).",
+        "es": "Pide a la instancia elegida que se apague correctamente (30 segundos como máximo)."
+      },
+      "timeout_seconds": 90,
+      "fields": [
+        {
+          "key": "instance",
+          "type": "select",
+          "source": "devices",
+          "required": true,
+          "label": {
+            "en": "Instance",
+            "fr": "Instance",
+            "de": "Instanz",
+            "es": "Instancia"
+          },
+          "description": {
+            "en": "An instance device of this integration.",
+            "fr": "Un appareil instance de cette intégration.",
+            "de": "Ein Instanz-Gerät dieser Integration.",
+            "es": "Un dispositivo instancia de esta integración."
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "key": "instance_name",
+          "type": "string",
+          "label": {
+            "en": "Instance",
+            "fr": "Instance",
+            "de": "Instanz",
+            "es": "Instancia"
+          }
+        },
+        {
+          "key": "running",
+          "type": "boolean",
+          "label": {
+            "en": "Running",
+            "fr": "En marche",
+            "de": "Läuft",
+            "es": "En marcha"
+          }
+        }
+      ]
+    },
+    {
+      "key": "restart_instance",
+      "label": {
+        "en": "Restart an instance",
+        "fr": "Redémarrer une instance",
+        "de": "Instanz neu starten",
+        "es": "Reiniciar una instancia"
+      },
+      "description": {
+        "en": "Restarts the chosen instance (starts it when stopped).",
+        "fr": "Redémarre l'instance choisie (la démarre si elle est arrêtée).",
+        "de": "Startet die gewählte Instanz neu (startet sie, wenn gestoppt).",
+        "es": "Reinicia la instancia elegida (la inicia si está detenida)."
+      },
+      "timeout_seconds": 90,
+      "fields": [
+        {
+          "key": "instance",
+          "type": "select",
+          "source": "devices",
+          "required": true,
+          "label": {
+            "en": "Instance",
+            "fr": "Instance",
+            "de": "Instanz",
+            "es": "Instancia"
+          },
+          "description": {
+            "en": "An instance device of this integration.",
+            "fr": "Un appareil instance de cette intégration.",
+            "de": "Ein Instanz-Gerät dieser Integration.",
+            "es": "Un dispositivo instancia de esta integración."
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "key": "instance_name",
+          "type": "string",
+          "label": {
+            "en": "Instance",
+            "fr": "Instance",
+            "de": "Instanz",
+            "es": "Instancia"
+          }
+        },
+        {
+          "key": "running",
+          "type": "boolean",
+          "label": {
+            "en": "Running",
+            "fr": "En marche",
+            "de": "Läuft",
+            "es": "En marcha"
+          }
+        }
+      ]
     }
   ]
 }

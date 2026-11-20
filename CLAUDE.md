@@ -16,8 +16,8 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/hub.test.js              # one file
+node --test --test-name-pattern "token"   # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -31,16 +31,27 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
+index.js                          SDK wiring only: src/app.js registers the handlers before connect()
+src/app.js                        every SDK handler -> the hub (also used by the tests)
+src/hub.js                        the server: reading timer, trust by token, pin, states, CPU, scene events, operations
+src/alerts.js                     transition: instance stopped unexpectedly (persisted)
+src/devices.js                    server and instance devices; names (4 languages)
+src/incus/cert.js                 self-signed client certificate (DER written by hand, node:crypto only)
+src/incus/transport.js            HTTPS with the client certificate, server fingerprint checked before sending
+src/incus/client.js               Incus REST API: /1.0, certificates, instances, resources, state + operation wait
+src/incus/model.js                raw instances -> one snapshot (status, CPU, memory, address)
+src/incus/errors.js               IncusError and its kinds
+src/actions.js                    manifest actions (Configuration buttons)
 src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
-src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+src/widgets.js                    dashboard widget `instances` (manifest `widgets`)
+src/texts.js                      connection, error, operation, report texts (4 languages), ActionFailure
+src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization, trust token
+src/store.js                      /data: incus-state.json, client.crt, client.key
+src/logs.js                       repeated failures logged once, then once when they heal
+gladys-assistant-integration.json manifest: name, config_schema, actions, triggers, widget...
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en and fr mandatory)
+test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing),
+                                  helpers/fakeIncus.js (test/fixtures/incus) and a local HTTPS server
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -58,8 +69,8 @@ test/                             node --test, against the SDK's fake Gladys (in
   one, `0`/`0` for a feature without a range (text, image...). A missing one
   can pass the publication on a core that does not check it, then fail when
   the user clicks "Add" (HTTP 422 `t_device_feature.min cannot be null`). The
-  SDK's fake Gladys refuses it on publication, and `test/devices.test.js`
-  checks them.
+  SDK's fake Gladys refuses it on publication, and
+  `test/gladys-rules.test.js` checks them.
 - **The container rootfs is read-only.** Write only under `/data`, the one
   writable volume. Never log tokens, passwords or API keys.
 - **Versions belong to the Release workflow** (Actions → Release). Never edit
@@ -78,8 +89,9 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in English, French, German and Spanish: action
+  messages, widget texts, feature names, manifest texts, and
+  `docs/{en,fr,de,es}.md`, kept in sync (`test/i18n.test.js`).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -222,6 +234,44 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 - Les filtres de scène ne font qu'égalité et appartenance : un seuil reste le travail d'un capteur.
 - **Les clés de widgets, de déclencheurs et d'actions sont figées une fois publiées.**
 - `gladys_version` `>=5.1.0` dès qu'il y a widgets, déclencheurs ou actions de scène.
+
+## Incus (propre à ce dépôt)
+
+- **API** : REST d'Incus en HTTPS (port 8443 par défaut, `core.https_address`), LXD identique. Enveloppes
+  `sync` / `async` / `error` (`error_code`). Lecture : `GET /1.0` (`auth: trusted|untrusted`,
+  `environment.server` = `incus` ou `lxd`, `server_version`), `GET /1.0/instances?recursion=2&all-projects=true`
+  (état complet ; `all-projects` seulement si l'extension `instance_all_projects` est annoncée, et repli sans en
+  cas de 403 pour un certificat restreint), `GET /1.0/resources` une fois (`cpu.total`). Commande :
+  `PUT /1.0/instances/{name}/state?project=p` `{action, timeout: 30, force: false}` → opération asynchrone, attendue
+  par `GET /1.0/operations/{id}/wait?timeout=60` (`metadata.status` `Success` ou `Failure` + `err`).
+- **Authentification** : Incus identifie le client par le certificat TLS présenté. Node sait créer les clés mais
+  pas un certificat X.509 : `src/incus/cert.js` écrit le DER à la main (P-384, SHA-384, clientAuth, 10 ans),
+  vérifié par OpenSSL et par `X509Certificate`. Jeton de `incus config trust add` = base64 d'un JSON
+  (`client_name`, `fingerprint` du serveur, `addresses`, `secret`, `expires_at`) ; on envoie le **jeton entier**
+  dans `trust_token` (`POST /1.0/certificates`, le serveur prend le certificat de la connexion TLS). Jeton
+  refusé = 403 ; un jeton refusé n'est pas renvoyé tant qu'il ne change pas.
+- **Épinglage** : certificat serveur auto-signé, donc empreinte SHA-256 épinglée (celle du jeton, sinon la
+  première vue), vérifiée dans `createConnection` de `node:http` **avant** l'envoi de la requête
+  (`rejectUnauthorized: false` + contrôle manuel). Le `timeout` de `http.request` ne court qu'après la poignée de
+  main TLS : une échéance globale par requête est indispensable (sinon un port muet bloque toutes les lectures).
+  Une URL changée reprend l'empreinte du jeton ; le jeton appliqué est mémorisé (`pinnedToken`) pour ne pas
+  écraser une nouvelle confiance manuelle au redémarrage. Action « Trust the server certificate again » pour une
+  réinstallation.
+- **Statuts** : Running, Stopped, Frozen (pause : `start` → `unfreeze`), Error. Le déclencheur
+  `instance_stopped` part sur Running → Stopped/Error sans demande de Gladys ; pas sur une pause ni une
+  suppression. Start d'une instance en marche / stop d'une instance arrêtée : rien n'est envoyé (Incus répond 400
+  « already running »). Restart d'une instance arrêtée = start.
+- **CPU** : `state.cpu.usage` cumulé en ns → % entre deux lectures, divisé par `state.cpu.allocated_time`
+  (ns de CPU par seconde, quota CFS compris, extension `instance_state_cpu_time`) s'il est > 0, sinon
+  `limits.cpu` (nombre, plage ou liste), sinon 1 vCPU pour une VM (défaut QEMU d'Incus) et les threads de
+  l'hôte pour un conteneur ; couple `level-sensor/liquid-level-percent` comme Glances (pas de catégorie
+  pourcentage générique). Mémoire en `data/size` Mo. Adresse : première IPv4 globale hors `lo`, sinon IPv6 (une
+  VM ne la donne qu'avec `incus-agent`).
+- **Identité** : `name` dans le projet `default`, `project.name` ailleurs (un nom Incus n'a pas de point), haché
+  au-delà de 64 caractères.
+- **Non vérifié sur un vrai Incus** : lancer Incus en Docker exige `--privileged`, refusé par le mode auto de la
+  session. Fixtures calquées sur `shared/api` du dépôt lxc/incus (non capturées). Le transport TLS est, lui,
+  testé contre un vrai serveur HTTPS local à certificat client.
 
 ## Store
 

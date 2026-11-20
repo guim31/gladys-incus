@@ -1,0 +1,480 @@
+{
+  "type": "sync",
+  "status": "Success",
+  "status_code": 200,
+  "operation": "",
+  "error_code": 0,
+  "error": "",
+  "metadata": [
+    {
+      "architecture": "x86_64",
+      "config": {
+        "image.os": "Debian",
+        "image.release": "trixie",
+        "image.description": "Debian trixie amd64 (20261115_05:24)",
+        "volatile.base_image": "0f3e5d7c9b1a"
+      },
+      "devices": {},
+      "ephemeral": false,
+      "profiles": ["default"],
+      "stateful": false,
+      "description": "",
+      "created_at": "2026-10-02T18:12:40.112233Z",
+      "expanded_config": {
+        "image.os": "Debian",
+        "image.release": "trixie",
+        "image.description": "Debian trixie amd64 (20261115_05:24)",
+        "volatile.base_image": "0f3e5d7c9b1a",
+        "volatile.uuid": "1b2c3d4e-0000-4000-8000-000000000003"
+      },
+      "expanded_devices": {
+        "eth0": {
+          "name": "eth0",
+          "network": "incusbr0",
+          "type": "nic"
+        },
+        "root": {
+          "path": "/",
+          "pool": "default",
+          "type": "disk"
+        }
+      },
+      "name": "web",
+      "status": "Running",
+      "status_code": 103,
+      "last_used_at": "2026-11-19T20:40:02.5Z",
+      "location": "none",
+      "type": "container",
+      "project": "default",
+      "backups": null,
+      "snapshots": null,
+      "state": {
+        "status": "Running",
+        "status_code": 103,
+        "disk": {
+          "root": {
+            "usage": 412000000,
+            "total": 0
+          }
+        },
+        "memory": {
+          "usage": 268435456,
+          "usage_peak": 0,
+          "total": 0,
+          "swap_usage": 0,
+          "swap_usage_peak": 0
+        },
+        "network": {
+          "eth0": {
+            "addresses": [
+              {
+                "family": "inet",
+                "address": "192.0.2.101",
+                "netmask": "24",
+                "scope": "global"
+              },
+              {
+                "family": "inet6",
+                "address": "2001:db8::101",
+                "netmask": "64",
+                "scope": "global"
+              },
+              {
+                "family": "inet6",
+                "address": "fe80::216:3eff:fe00:1",
+                "netmask": "64",
+                "scope": "link"
+              }
+            ],
+            "counters": {
+              "bytes_received": 123456,
+              "bytes_sent": 65432,
+              "packets_received": 900,
+              "packets_sent": 700,
+              "errors_received": 0,
+              "errors_sent": 0,
+              "packets_dropped_outbound": 0,
+              "packets_dropped_inbound": 0
+            },
+            "hwaddr": "10:66:6a:00:00:01",
+            "host_name": "veth1a2b3c4d",
+            "mtu": 1500,
+            "state": "up",
+            "type": "broadcast"
+          },
+          "lo": {
+            "addresses": [
+              {
+                "family": "inet",
+                "address": "127.0.0.1",
+                "netmask": "8",
+                "scope": "local"
+              },
+              {
+                "family": "inet6",
+                "address": "::1",
+                "netmask": "128",
+                "scope": "local"
+              }
+            ],
+            "counters": {
+              "bytes_received": 0,
+              "bytes_sent": 0,
+              "packets_received": 0,
+              "packets_sent": 0,
+              "errors_received": 0,
+              "errors_sent": 0,
+              "packets_dropped_outbound": 0,
+              "packets_dropped_inbound": 0
+            },
+            "hwaddr": "",
+            "host_name": "",
+            "mtu": 65536,
+            "state": "up",
+            "type": "loopback"
+          }
+        },
+        "pid": 4242,
+        "processes": 14,
+        "cpu": {
+          "usage": 812345678901,
+          "allocated_time": 0
+        },
+        "started_at": "2026-11-19T20:40:02.5Z",
+        "os_info": null
+      }
+    },
+    {
+      "architecture": "x86_64",
+      "config": {
+        "image.os": "Debian",
+        "image.release": "trixie",
+        "image.description": "Debian trixie amd64 (20261115_05:24)",
+        "volatile.base_image": "0f3e5d7c9b1a",
+        "limits.cpu": "2"
+      },
+      "devices": {},
+      "ephemeral": false,
+      "profiles": ["default"],
+      "stateful": false,
+      "description": "",
+      "created_at": "2026-10-02T18:12:40.112233Z",
+      "expanded_config": {
+        "image.os": "Debian",
+        "image.release": "trixie",
+        "image.description": "Debian trixie amd64 (20261115_05:24)",
+        "volatile.base_image": "0f3e5d7c9b1a",
+        "limits.cpu": "2",
+        "volatile.uuid": "1b2c3d4e-0000-4000-8000-000000000009"
+      },
+      "expanded_devices": {
+        "eth0": {
+          "name": "eth0",
+          "network": "incusbr0",
+          "type": "nic"
+        },
+        "root": {
+          "path": "/",
+          "pool": "default",
+          "type": "disk"
+        }
+      },
+      "name": "nextcloud",
+      "status": "Running",
+      "status_code": 103,
+      "last_used_at": "2026-11-19T20:40:02.5Z",
+      "location": "none",
+      "type": "container",
+      "project": "lab",
+      "backups": null,
+      "snapshots": null,
+      "state": {
+        "status": "Running",
+        "status_code": 103,
+        "disk": {
+          "root": {
+            "usage": 412000000,
+            "total": 0
+          }
+        },
+        "memory": {
+          "usage": 536870912,
+          "usage_peak": 0,
+          "total": 0,
+          "swap_usage": 0,
+          "swap_usage_peak": 0
+        },
+        "network": {
+          "eth0": {
+            "addresses": [
+              {
+                "family": "inet",
+                "address": "192.0.2.102",
+                "netmask": "24",
+                "scope": "global"
+              },
+              {
+                "family": "inet6",
+                "address": "2001:db8::102",
+                "netmask": "64",
+                "scope": "global"
+              },
+              {
+                "family": "inet6",
+                "address": "fe80::216:3eff:fe00:1",
+                "netmask": "64",
+                "scope": "link"
+              }
+            ],
+            "counters": {
+              "bytes_received": 123456,
+              "bytes_sent": 65432,
+              "packets_received": 900,
+              "packets_sent": 700,
+              "errors_received": 0,
+              "errors_sent": 0,
+              "packets_dropped_outbound": 0,
+              "packets_dropped_inbound": 0
+            },
+            "hwaddr": "10:66:6a:00:00:02",
+            "host_name": "veth1a2b3c4d",
+            "mtu": 1500,
+            "state": "up",
+            "type": "broadcast"
+          },
+          "lo": {
+            "addresses": [
+              {
+                "family": "inet",
+                "address": "127.0.0.1",
+                "netmask": "8",
+                "scope": "local"
+              },
+              {
+                "family": "inet6",
+                "address": "::1",
+                "netmask": "128",
+                "scope": "local"
+              }
+            ],
+            "counters": {
+              "bytes_received": 0,
+              "bytes_sent": 0,
+              "packets_received": 0,
+              "packets_sent": 0,
+              "errors_received": 0,
+              "errors_sent": 0,
+              "packets_dropped_outbound": 0,
+              "packets_dropped_inbound": 0
+            },
+            "hwaddr": "",
+            "host_name": "",
+            "mtu": 65536,
+            "state": "up",
+            "type": "loopback"
+          }
+        },
+        "pid": 4343,
+        "processes": 14,
+        "cpu": {
+          "usage": 41234567890,
+          "allocated_time": 0
+        },
+        "started_at": "2026-11-19T20:40:02.5Z",
+        "os_info": null
+      }
+    },
+    {
+      "architecture": "x86_64",
+      "config": {
+        "image.os": "Debian",
+        "image.release": "trixie",
+        "image.description": "Debian trixie amd64 (20261115_05:24)",
+        "volatile.base_image": "0f3e5d7c9b1a"
+      },
+      "devices": {},
+      "ephemeral": false,
+      "profiles": ["default"],
+      "stateful": false,
+      "description": "",
+      "created_at": "2026-10-02T18:12:40.112233Z",
+      "expanded_config": {
+        "image.os": "Debian",
+        "image.release": "trixie",
+        "image.description": "Debian trixie amd64 (20261115_05:24)",
+        "volatile.base_image": "0f3e5d7c9b1a",
+        "volatile.uuid": "1b2c3d4e-0000-4000-8000-000000000007"
+      },
+      "expanded_devices": {
+        "eth0": {
+          "name": "eth0",
+          "network": "incusbr0",
+          "type": "nic"
+        },
+        "root": {
+          "path": "/",
+          "pool": "default",
+          "type": "disk"
+        }
+      },
+      "name": "windows",
+      "status": "Stopped",
+      "status_code": 102,
+      "last_used_at": "2026-11-19T20:40:02.5Z",
+      "location": "none",
+      "type": "virtual-machine",
+      "project": "default",
+      "backups": null,
+      "snapshots": null,
+      "state": {
+        "status": "Stopped",
+        "status_code": 102,
+        "disk": {},
+        "memory": {
+          "usage": 0,
+          "usage_peak": 0,
+          "total": 0,
+          "swap_usage": 0,
+          "swap_usage_peak": 0
+        },
+        "network": null,
+        "pid": 0,
+        "processes": -1,
+        "cpu": {
+          "usage": 0,
+          "allocated_time": 0
+        },
+        "started_at": "0001-01-01T00:00:00Z",
+        "os_info": null
+      }
+    },
+    {
+      "architecture": "x86_64",
+      "config": {
+        "image.os": "Debian",
+        "image.release": "trixie",
+        "image.description": "Debian trixie amd64 (20261115_05:24)",
+        "volatile.base_image": "0f3e5d7c9b1a"
+      },
+      "devices": {},
+      "ephemeral": false,
+      "profiles": ["default"],
+      "stateful": false,
+      "description": "",
+      "created_at": "2026-10-02T18:12:40.112233Z",
+      "expanded_config": {
+        "image.os": "Debian",
+        "image.release": "trixie",
+        "image.description": "Debian trixie amd64 (20261115_05:24)",
+        "volatile.base_image": "0f3e5d7c9b1a",
+        "volatile.uuid": "1b2c3d4e-0000-4000-8000-000000000006"
+      },
+      "expanded_devices": {
+        "eth0": {
+          "name": "eth0",
+          "network": "incusbr0",
+          "type": "nic"
+        },
+        "root": {
+          "path": "/",
+          "pool": "default",
+          "type": "disk"
+        }
+      },
+      "name": "broken",
+      "status": "Error",
+      "status_code": 112,
+      "last_used_at": "2026-11-19T20:40:02.5Z",
+      "location": "none",
+      "type": "container",
+      "project": "default",
+      "backups": null,
+      "snapshots": null,
+      "state": {
+        "status": "Error",
+        "status_code": 112,
+        "disk": {},
+        "memory": {
+          "usage": 0,
+          "usage_peak": 0,
+          "total": 0,
+          "swap_usage": 0,
+          "swap_usage_peak": 0
+        },
+        "network": null,
+        "pid": 0,
+        "processes": 0,
+        "cpu": {
+          "usage": 0,
+          "allocated_time": 0
+        },
+        "started_at": "0001-01-01T00:00:00Z",
+        "os_info": null
+      }
+    },
+    {
+      "architecture": "x86_64",
+      "config": {
+        "image.os": "Debian",
+        "image.release": "trixie",
+        "image.description": "Debian trixie amd64 (20261115_05:24)",
+        "volatile.base_image": "0f3e5d7c9b1a"
+      },
+      "devices": {},
+      "ephemeral": false,
+      "profiles": ["default"],
+      "stateful": false,
+      "description": "",
+      "created_at": "2026-10-02T18:12:40.112233Z",
+      "expanded_config": {
+        "image.os": "Debian",
+        "image.release": "trixie",
+        "image.description": "Debian trixie amd64 (20261115_05:24)",
+        "volatile.base_image": "0f3e5d7c9b1a",
+        "volatile.uuid": "1b2c3d4e-0000-4000-8000-000000000006"
+      },
+      "expanded_devices": {
+        "eth0": {
+          "name": "eth0",
+          "network": "incusbr0",
+          "type": "nic"
+        },
+        "root": {
+          "path": "/",
+          "pool": "default",
+          "type": "disk"
+        }
+      },
+      "name": "paused",
+      "status": "Frozen",
+      "status_code": 110,
+      "last_used_at": "2026-11-19T20:40:02.5Z",
+      "location": "none",
+      "type": "container",
+      "project": "default",
+      "backups": null,
+      "snapshots": null,
+      "state": {
+        "status": "Frozen",
+        "status_code": 110,
+        "disk": {},
+        "memory": {
+          "usage": 1048576,
+          "usage_peak": 0,
+          "total": 0,
+          "swap_usage": 0,
+          "swap_usage_peak": 0
+        },
+        "network": null,
+        "pid": 0,
+        "processes": 0,
+        "cpu": {
+          "usage": 9999999,
+          "allocated_time": 0
+        },
+        "started_at": "0001-01-01T00:00:00Z",
+        "os_info": null
+      }
+    }
+  ]
+}

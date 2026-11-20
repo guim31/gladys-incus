@@ -1,0 +1,46 @@
+{
+  "type": "sync",
+  "status": "Success",
+  "status_code": 200,
+  "operation": "",
+  "error_code": 0,
+  "error": "",
+  "metadata": {
+    "api_extensions": [
+      "storage_zfs_remove_snapshots",
+      "container_host_shutdown_timeout",
+      "container_full",
+      "instances",
+      "instance_all_projects",
+      "explicit_trust_token",
+      "projects",
+      "resources",
+      "certificate_project"
+    ],
+    "api_status": "stable",
+    "api_version": "1.0",
+    "auth": "untrusted",
+    "public": false,
+    "auth_methods": ["tls"],
+    "environment": {
+      "addresses": [],
+      "architectures": ["x86_64", "i686"],
+      "certificate": "",
+      "certificate_fingerprint": "",
+      "kernel": "",
+      "kernel_architecture": "",
+      "kernel_version": "",
+      "os_name": "",
+      "os_version": "",
+      "project": "",
+      "server": "incus",
+      "server_clustered": false,
+      "server_event_mode": "",
+      "server_name": "",
+      "server_pid": 0,
+      "server_version": "",
+      "storage": "",
+      "storage_version": ""
+    }
+  }
+}

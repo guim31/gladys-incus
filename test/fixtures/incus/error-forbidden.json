@@ -1,0 +1,9 @@
+{
+  "type": "error",
+  "status": "",
+  "status_code": 0,
+  "operation": "",
+  "error_code": 403,
+  "error": "not authorized",
+  "metadata": null
+}

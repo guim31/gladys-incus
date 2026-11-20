@@ -1,0 +1,24 @@
+{
+  "type": "sync",
+  "status": "Success",
+  "status_code": 200,
+  "operation": "",
+  "error_code": 0,
+  "error": "",
+  "metadata": {
+    "id": "7c5d2f1e-3a4b-4c6d-8e9f-0a1b2c3d4e5f",
+    "class": "task",
+    "description": "Stopping instance",
+    "created_at": "2026-11-19T20:52:01.1Z",
+    "updated_at": "2026-11-19T20:52:01.1Z",
+    "status": "Failure",
+    "status_code": 400,
+    "resources": {
+      "instances": ["/1.0/instances/windows"]
+    },
+    "metadata": null,
+    "may_cancel": false,
+    "err": "Failed shutting down instance, status is \"Running\": context deadline exceeded",
+    "location": "none"
+  }
+}
