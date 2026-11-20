@@ -63,7 +63,9 @@ export function parseApiUrl(raw) {
   if (url.hostname === '0.0.0.0' || url.hostname === '[::]') {
     return null;
   }
-  if (!url.port && (!hasScheme || url.pathname === '/')) {
+  // `new URL` drops the default port 443: an explicit one is kept.
+  const explicitPort = /^(?:https:\/\/)?(?:\[[^\]]*\]|[^/:]+):\d+/i.test(text);
+  if (!url.port && !explicitPort && (!hasScheme || url.pathname === '/')) {
     url.port = String(DEFAULT_PORT);
   }
   return `${url.origin}${url.pathname.replace(/\/+$/, '')}`;

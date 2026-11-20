@@ -105,8 +105,8 @@ appareil et son historique.
   s'arrêter proprement (30 secondes au plus), allumé, il la démarre (ou la
   reprend si elle est en pause) ;
 - **Processeur** : l'usage du processeur depuis la lecture précédente, en %
-  des threads que l'instance peut utiliser (`limits.cpu`, ou tous ceux du
-  serveur) ;
+  des threads que l'instance peut utiliser (ce qu'Incus lui alloue : `limits.cpu` et son quota ; un vCPU pour une VM
+  sans limite, tous les threads du serveur pour un conteneur) ;
 - **Mémoire** : la mémoire utilisée, en Mo ;
 - **Adresse IP** : la première adresse IPv4 globale (IPv6 sinon). Une VM ne
   la donne qu'avec son agent (`incus-agent`) en marche.

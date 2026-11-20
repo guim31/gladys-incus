@@ -6,7 +6,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ERROR_KINDS, IncusClient, IncusError, OPERATIONS } from '../src/incus/client.js';
-import { cpuLimit, cpuPercent, mainAddress, parseSnapshot, totals } from '../src/incus/model.js';
+import {
+  cpuLimit,
+  cpuPercent,
+  cpuThreads,
+  mainAddress,
+  parseSnapshot,
+  totals,
+} from '../src/incus/model.js';
 import { FakeIncus, fixture } from './helpers/fakeIncus.js';
 
 const client = (incus) => new IncusClient({ request: incus.createTransport({}) });
@@ -46,6 +53,13 @@ test('CPU limits, addresses and percentages', () => {
   assert.equal(cpuLimit({ 'limits.cpu': 'weird' }, 8), 8);
   assert.equal(cpuLimit({}, 8), 8);
   assert.equal(cpuLimit({}, null), null);
+  // allocated_time first, then one vCPU for an unlimited VM.
+  const vm = { type: 'virtual-machine', expanded_config: {} };
+  assert.equal(cpuThreads(vm, { cpu: { allocated_time: 0 } }, 16), 1);
+  assert.equal(cpuThreads(vm, { cpu: { allocated_time: 4e9 } }, 16), 4);
+  const ct = { type: 'container', expanded_config: { 'limits.cpu': '4' } };
+  assert.equal(cpuThreads(ct, { cpu: { allocated_time: 5e8 } }, 16), 0.5, 'CFS allowance');
+  assert.equal(cpuThreads(ct, {}, 16), 4);
   const network = fixture('instances').metadata[0].state.network;
   assert.equal(mainAddress(network), '192.0.2.101');
   assert.equal(

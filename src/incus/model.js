@@ -70,6 +70,25 @@ export function cpuLimit(config, hostThreads) {
   return hostThreads;
 }
 
+/**
+ * The CPU an instance may use, in threads: `state.cpu.allocated_time` when
+ * Incus gives it (ns of CPU per second, from the effective CPUs and the CFS
+ * quota, extension `instance_state_cpu_time`), else `limits.cpu`, else one
+ * vCPU for a VM (the QEMU default of Incus) and every host thread for a
+ * container.
+ */
+export function cpuThreads(raw, state, hostThreads) {
+  const allocated = state?.cpu?.allocated_time;
+  if (Number.isFinite(allocated) && allocated > 0) {
+    return allocated / 1e9;
+  }
+  const config = raw.expanded_config ?? raw.config;
+  if (raw.type === INSTANCE_TYPES.VM && !config?.['limits.cpu']) {
+    return 1;
+  }
+  return cpuLimit(config, hostThreads);
+}
+
 /** One instance of the list, null when unusable. */
 export function parseInstance(raw, hostThreads = null) {
   if (!raw || typeof raw !== 'object' || typeof raw.name !== 'string' || !raw.name) {
@@ -86,7 +105,7 @@ export function parseInstance(raw, hostThreads = null) {
     running,
     location: typeof raw.location === 'string' && raw.location !== 'none' ? raw.location : '',
     cpuNs: running ? nonNegative(state.cpu?.usage) : null,
-    cpuThreads: cpuLimit(raw.expanded_config ?? raw.config, hostThreads),
+    cpuThreads: cpuThreads(raw, state, hostThreads),
     memoryBytes: running ? nonNegative(state.memory?.usage) : null,
     address: running ? mainAddress(state.network) : null,
   };

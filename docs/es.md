@@ -104,8 +104,8 @@ nombre, conserva su dispositivo y su historial.
   correctamente (30 segundos como máximo), encendido la inicia (o la reanuda
   si está en pausa);
 - **Procesador**: el uso del procesador desde la lectura anterior, en % de
-  los hilos que la instancia puede usar (`limits.cpu`, o todos los del
-  servidor);
+  los hilos que la instancia puede usar (lo que Incus le asigna: `limits.cpu` y su cuota; una vCPU para una VM sin
+  límite, todos los hilos del servidor para un contenedor);
 - **Memoria**: la memoria usada, en MB;
 - **Dirección IP**: la primera dirección IPv4 global (si no, IPv6). Una VM
   solo la indica con su agente (`incus-agent`) en marcha.

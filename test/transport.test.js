@@ -8,6 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import net from 'node:net';
 import https from 'node:https';
 import { X509Certificate } from 'node:crypto';
 import { createClientCertificate, fingerprintOf } from '../src/incus/cert.js';
@@ -143,4 +144,25 @@ test('nothing listening is unreachable; a plain HTTP server is not Incus', async
   await new Promise((resolve) => closed.close(resolve));
   const silent = clientFor(`https://127.0.0.1:${closedPort}`, identity, pinning());
   assert.equal(await kindOf(silent.read()), ERROR_KINDS.UNREACHABLE);
+});
+
+test('a port that accepts and never answers times out, handshake included', async (t) => {
+  const sockets = [];
+  const mute = net.createServer((socket) => sockets.push(socket));
+  await new Promise((resolve) => mute.listen(0, '127.0.0.1', resolve));
+  t.after(() => {
+    sockets.forEach((socket) => socket.destroy());
+    mute.close();
+  });
+  const request = createTransport({
+    url: `https://127.0.0.1:${mute.address().port}`,
+    identity: createClientCertificate(),
+    pinning: {},
+  });
+  const started = Date.now();
+  await assert.rejects(request({ method: 'GET', path: '/1.0', timeoutMs: 200 }), (err) => {
+    assert.equal(err.kind, ERROR_KINDS.UNREACHABLE);
+    return true;
+  });
+  assert.ok(Date.now() - started < 2000);
 });

@@ -78,7 +78,7 @@ export const ERROR_TEXT = {
   [ERROR_KINDS.UNTRUSTED]: {
     en: 'Gladys is not trusted yet: paste a token of incus config trust add',
     fr: "Gladys n'est pas encore autorisé : collez un jeton de incus config trust add",
-    de: 'Gladys ist noch nicht vertraut: Füge ein Token von incus config trust add ein',
+    de: 'Gladys ist noch nicht autorisiert: Füge ein Token von incus config trust add ein',
     es: 'Gladys aún no está autorizado: pegue un token de incus config trust add',
   },
   [ERROR_KINDS.TOKEN_REFUSED]: {

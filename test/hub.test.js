@@ -12,6 +12,7 @@ import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { GladysApiError } from '@gladysassistant/integration-sdk';
 import { TRIGGERS } from '../src/hub.js';
+import { ERROR_KINDS, IncusError } from '../src/incus/errors.js';
 import { fixture, OTHER_FINGERPRINT, SERVER_FINGERPRINT } from './helpers/fakeIncus.js';
 import {
   FakeIncus,
@@ -512,6 +513,52 @@ test('a stop asked while a read is in flight never fires a trigger, and reads th
   const ack = await action;
   await timerRead;
   assert.deepEqual(ack.data.outputs, { instance_name: 'web', running: false });
+  w.clock.advance(30_000);
+  await w.hub.pollNow();
+  assert.deepEqual(events(w, TRIGGERS.STOPPED), []);
+});
+
+test('a token keeps its pin across an address fix, and a manual re-trust survives a restart', async (t) => {
+  const incus = new FakeIncus();
+  incus.trusted = false;
+  incus.tokenSecret = 'a1b2c3d4e5f6';
+  const token = makeToken({ fingerprint: OTHER_FINGERPRINT });
+  const w = await world(t, { incus, config: baseConfig({ trust_token: token }) });
+  assert.equal(w.hub.pin, OTHER_FINGERPRINT);
+  // The address fixed, the token unchanged: still its fingerprint, nothing sent.
+  await w.fake.configUpdated(baseConfig({ api_url: '198.51.100.7', trust_token: token }));
+  assert.equal(w.hub.pin, OTHER_FINGERPRINT);
+  assert.deepEqual(w.incus.calls, []);
+
+  // Back to the first address; the user trusts the new certificate by hand.
+  await w.fake.configUpdated(baseConfig({ trust_token: token }));
+  await w.fake.action('trust_server_again', {});
+  assert.equal(w.hub.pin, SERVER_FINGERPRINT);
+  await w.app.stop();
+  const again = await world(t, {
+    incus,
+    dataDir: w.dataDir,
+    config: baseConfig({ trust_token: token }),
+  });
+  assert.equal(again.hub.pin, SERVER_FINGERPRINT, 'the old token does not pin again');
+});
+
+test('a stop that cannot be read back stays expected: no false "stopped unexpectedly"', async (t) => {
+  const w = await world(t);
+  const request = w.hub.client.request;
+  let silent = false;
+  w.hub.client.request = async (call) => {
+    if (silent && call.method === 'GET' && !call.path.includes('/wait')) {
+      throw new IncusError(ERROR_KINDS.UNREACHABLE, 'GET: ECONNREFUSED');
+    }
+    const answer = await request(call);
+    if (call.path.includes('/wait')) {
+      silent = true; // Incus stops answering right after the stop.
+    }
+    return answer;
+  };
+  await w.fake.sceneAction('stop_instance', { instance: instanceId(w.gladys, 'web') });
+  silent = false;
   w.clock.advance(30_000);
   await w.hub.pollNow();
   assert.deepEqual(events(w, TRIGGERS.STOPPED), []);

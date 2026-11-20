@@ -105,7 +105,8 @@ aufgebaut, behält sie ihr Gerät und ihren Verlauf.
   (höchstens 30 Sekunden), ein startet sie (oder setzt sie fort, wenn
   pausiert);
 - **Prozessor**: die CPU-Last seit dem vorigen Lesen, in % der Threads, die
-  die Instanz nutzen darf (`limits.cpu`, oder alle des Servers);
+  die Instanz nutzen darf (was Incus zuteilt: `limits.cpu` und ihr CPU-Kontingent; eine vCPU für eine
+  VM ohne Limit, alle Threads des Servers für einen Container);
 - **Arbeitsspeicher**: der belegte Speicher, in MB;
 - **IP-Adresse**: die erste globale IPv4-Adresse (sonst IPv6). Eine VM
   meldet sie nur mit laufendem Agenten (`incus-agent`).
@@ -154,7 +155,7 @@ und jede Schaltfläche lassen sich ausblenden.
 
 - **Der Server antwortet nicht**: Prüfe `core.https_address`
   (`incus config get core.https_address`), den Port und die Firewall.
-- **Gladys ist noch nicht vertraut**: Füge ein Token in der Konfiguration
+- **Gladys ist noch nicht autorisiert**: Füge ein Token in der Konfiguration
   ein (oben).
 - **Vertrauens-Token abgelehnt**: Es ist abgelaufen oder wurde schon benutzt;
   erstelle ein neues.

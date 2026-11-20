@@ -119,9 +119,13 @@ export class IncusClient {
         const { metadata } = await this.call('GET', '/1.0/resources');
         const total = metadata?.cpu?.total;
         this.cpuTotal = Number.isInteger(total) && total > 0 ? total : null;
-      } catch {
+      } catch (err) {
         // A restricted certificate may not read the resources: per thread.
-        this.cpuTotal = null;
+        // Any other failure is retried at the next read.
+        if (err?.kind === ERROR_KINDS.FORBIDDEN) {
+          this.cpuTotal = null;
+        }
+        return null;
       }
     }
     return this.cpuTotal;

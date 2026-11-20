@@ -84,7 +84,7 @@ export class FakeIncus {
       return json(this.trusted ? this.server : fixture('server-untrusted'));
     }
     if (method === 'POST' && pathname === '/1.0/certificates') {
-      let secret = null;
+      let secret;
       try {
         secret = JSON.parse(Buffer.from(body.trust_token, 'base64').toString()).secret;
       } catch {

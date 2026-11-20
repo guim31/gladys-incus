@@ -134,6 +134,8 @@ export class IncusHub {
     this.watcher = new Watcher(saved);
     this.pin = typeof saved.pin === 'string' ? saved.pin : null;
     this.pinnedUrl = typeof saved.pinnedUrl === 'string' ? saved.pinnedUrl : null;
+    // The token whose fingerprint was applied: not applied again at each start.
+    this.pinnedToken = typeof saved.pinnedToken === 'string' ? saved.pinnedToken : null;
     this.identity = await this.store.identity();
     logger.info(`Client certificate fingerprint: ${this.identity.fingerprint}`);
     await this.reconfigure(config);
@@ -141,7 +143,12 @@ export class IncusHub {
 
   /** What is kept under /data: the trigger states and the server pin. */
   saved() {
-    return { ...this.watcher.saved, pin: this.pin, pinnedUrl: this.pinnedUrl };
+    return {
+      ...this.watcher.saved,
+      pin: this.pin,
+      pinnedUrl: this.pinnedUrl,
+      pinnedToken: this.pinnedToken,
+    };
   }
 
   save() {
@@ -165,13 +172,18 @@ export class IncusHub {
       if (this.config && config.url !== this.config.url) {
         this.watcher = new Watcher({ unreachable: false });
       }
+      // A token carries the fingerprint of the server: it wins over trust on
+      // first use, once (a later "Trust the server certificate again" stays).
+      const token = config.token;
       if (config.url !== this.pinnedUrl) {
-        this.pin = null;
+        this.pin = token?.fingerprint ?? null;
         this.pinnedUrl = config.url;
-      }
-      // A new token carries the fingerprint of the server: it wins.
-      if (tokenChanged && config.token?.fingerprint) {
-        this.pin = config.token.fingerprint;
+        this.pinnedToken = token?.id ?? null;
+      } else if (token && token.id !== this.pinnedToken) {
+        if (token.fingerprint) {
+          this.pin = token.fingerprint;
+        }
+        this.pinnedToken = token.id;
       }
       this.refusedToken = null;
       this.cpuReads.clear();
@@ -203,6 +215,10 @@ export class IncusHub {
       pinning: {
         expected: () => this.pin,
         seen: (fingerprint) => {
+          // A read of a previous configuration: not this server.
+          if (url !== this.config?.url || this.pin) {
+            return;
+          }
           // Trusted on first use, kept under /data.
           this.pin = fingerprint;
           this.pinnedUrl = url;
@@ -816,7 +832,11 @@ export class IncusHub {
         );
       }
       await this.pollNow({ fresh: true });
-      this.watcher.done(instance);
+      // Read back: no more expectation. Unread (Incus silent), the
+      // expectation runs out by itself, so the stop is never announced.
+      if (!this.error) {
+        this.watcher.done(instance);
+      }
     }
     logger.info(`${operation} ${label}${done ? '' : ' (nothing to do)'}`);
     const key = instanceKey(instance);

@@ -100,7 +100,8 @@ device and its history.
 - **Running**: a switch; off asks the instance to shut down cleanly (30
   seconds at most), on starts it (or resumes it when paused);
 - **CPU**: the processor use since the previous read, in % of the threads
-  the instance may use (`limits.cpu`, or every thread of the server);
+  the instance may use (what Incus allocates: `limits.cpu` and its CPU allowance; one vCPU for a VM
+  without a limit, every thread of the server for a container);
 - **Memory**: the memory used, in MB;
 - **IP address**: the first global IPv4 address (IPv6 otherwise). A VM only
   reports it with its agent (`incus-agent`) running.

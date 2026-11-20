@@ -252,14 +252,19 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
   refusé = 403 ; un jeton refusé n'est pas renvoyé tant qu'il ne change pas.
 - **Épinglage** : certificat serveur auto-signé, donc empreinte SHA-256 épinglée (celle du jeton, sinon la
   première vue), vérifiée dans `createConnection` de `node:http` **avant** l'envoi de la requête
-  (`rejectUnauthorized: false` + contrôle manuel). Action « Trust the server certificate again » pour une
+  (`rejectUnauthorized: false` + contrôle manuel). Le `timeout` de `http.request` ne court qu'après la poignée de
+  main TLS : une échéance globale par requête est indispensable (sinon un port muet bloque toutes les lectures).
+  Une URL changée reprend l'empreinte du jeton ; le jeton appliqué est mémorisé (`pinnedToken`) pour ne pas
+  écraser une nouvelle confiance manuelle au redémarrage. Action « Trust the server certificate again » pour une
   réinstallation.
 - **Statuts** : Running, Stopped, Frozen (pause : `start` → `unfreeze`), Error. Le déclencheur
   `instance_stopped` part sur Running → Stopped/Error sans demande de Gladys ; pas sur une pause ni une
   suppression. Start d'une instance en marche / stop d'une instance arrêtée : rien n'est envoyé (Incus répond 400
   « already running »). Restart d'une instance arrêtée = start.
-- **CPU** : `state.cpu.usage` cumulé en ns → % entre deux lectures, divisé par `limits.cpu` (nombre, plage ou
-  liste) ou les threads de l'hôte ; couple `level-sensor/liquid-level-percent` comme Glances (pas de catégorie
+- **CPU** : `state.cpu.usage` cumulé en ns → % entre deux lectures, divisé par `state.cpu.allocated_time`
+  (ns de CPU par seconde, quota CFS compris, extension `instance_state_cpu_time`) s'il est > 0, sinon
+  `limits.cpu` (nombre, plage ou liste), sinon 1 vCPU pour une VM (défaut QEMU d'Incus) et les threads de
+  l'hôte pour un conteneur ; couple `level-sensor/liquid-level-percent` comme Glances (pas de catégorie
   pourcentage générique). Mémoire en `data/size` Mo. Adresse : première IPv4 globale hors `lo`, sinon IPv6 (une
   VM ne la donne qu'avec `incus-agent`).
 - **Identité** : `name` dans le projet `default`, `project.name` ailleurs (un nom Incus n'a pas de point), haché

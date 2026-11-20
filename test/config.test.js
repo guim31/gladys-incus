@@ -10,6 +10,8 @@ test('the API address accepts what people type', () => {
   assert.equal(parseApiUrl('https://server.lan'), 'https://server.lan:8443');
   assert.equal(parseApiUrl('https://proxy.lan/incus'), 'https://proxy.lan/incus');
   assert.equal(parseApiUrl('[2001:db8::1]:8443'), 'https://[2001:db8::1]:8443');
+  assert.equal(parseApiUrl('incus.lan:443'), 'https://incus.lan');
+  assert.equal(parseApiUrl('https://incus.lan:443/'), 'https://incus.lan');
 });
 
 test('the API address refuses what cannot work', () => {

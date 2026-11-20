@@ -66,9 +66,15 @@ export function createTransport({ url, identity, pinning }) {
     new Promise((resolve, reject) => {
       const payload = body === undefined ? null : Buffer.from(JSON.stringify(body));
       let settled = false;
+      let socket = null;
+      let deadline = null;
+      const settle = () => {
+        settled = true;
+        clearTimeout(deadline);
+      };
       const fail = (err) => {
         if (!settled) {
-          settled = true;
+          settle();
           reject(err);
         }
       };
@@ -83,9 +89,8 @@ export function createTransport({ url, identity, pinning }) {
             ? { 'content-type': 'application/json', 'content-length': payload.length }
             : {}),
         },
-        timeout: timeoutMs,
         createConnection: (_options, done) => {
-          const socket = tls.connect({
+          socket = tls.connect({
             host,
             port,
             servername: isIP(host) ? undefined : host,
@@ -107,9 +112,16 @@ export function createTransport({ url, identity, pinning }) {
           socket.once('error', (err) => done(err));
         },
       });
-      request.on('timeout', () => {
-        request.destroy(new IncusError(ERROR_KINDS.UNREACHABLE, `${method} ${path}: timeout`));
-      });
+      // One deadline for the whole exchange: the `timeout` option of
+      // http.request only starts once the TLS handshake is over, and a port
+      // that accepts and never answers would hang the read for good.
+      deadline = setTimeout(() => {
+        const err = new IncusError(ERROR_KINDS.UNREACHABLE, `${method} ${path}: timeout`);
+        fail(err);
+        request.destroy(err);
+        socket?.destroy();
+      }, timeoutMs);
+      deadline.unref?.();
       request.on('error', (err) => {
         if (err instanceof IncusError) {
           fail(err);
@@ -126,7 +138,10 @@ export function createTransport({ url, identity, pinning }) {
         const chunks = [];
         response.on('data', (chunk) => chunks.push(chunk));
         response.on('end', () => {
-          settled = true;
+          if (settled) {
+            return;
+          }
+          settle();
           resolve({ status: response.statusCode, text: Buffer.concat(chunks).toString('utf8') });
         });
         response.on('error', (err) =>
